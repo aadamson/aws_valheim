@@ -1,0 +1,29 @@
+- name: Create .aws directory 
+  become: yes
+  become_user: root
+  file:
+    path: /root/.aws
+    state: directory
+    mode: '0700'
+
+- name: Copy aws credentials
+  become: yes
+  become_user: root
+  copy:
+    src: ../src/.aws/credentials
+    dest: /root/.aws/credentials
+    mode: '0600'
+
+- name: Create S3 bucket if it doesn't exist
+  s3_bucket:
+    name: "{{ goofys.bucket }}"
+    region: "{{ region }}"
+    state: present
+  delegate_to: localhost
+
+- name: Mount goofys
+  become: yes
+  become_user: root
+  script: goofys_mount.sh steam "{{ goofys.bucket }}"
+  args:
+    creates: "/mnt/goofys/{{ goofys.bucket }}"

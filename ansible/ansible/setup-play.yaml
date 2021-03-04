@@ -1,0 +1,110 @@
+- hosts: localhost
+  name: Setup Infrastructure and Provision Environment
+  remote_user: ubuntu
+  gather_facts: False
+
+  tasks:
+    - include_vars:
+        dir: config
+        extensions:
+          - 'yaml'
+        ignore_unknown_extensions: True
+
+    - name: Create Security Group
+      ec2_group:
+        name: valheim-sg
+        description: security group for valheim
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ region }}"
+        rules:
+          - proto: all
+            group_name: valheim-sg
+          # Enable ssh connections to the server
+          - proto: tcp
+            ports:
+              - 22
+            cidr_ip: 0.0.0.0/0
+          # Enable inbound tcp and udp on 2456-2458 (game ports)
+          - proto: tcp
+            ports:
+              - 2456-2458
+            cidr_ip: 0.0.0.0/0
+          - proto: udp
+            ports:
+              - 2456-2458
+            cidr_ip: 0.0.0.0/0
+
+    - name: Create ec2 instances
+      ec2:
+        spot_price: 1.00
+        spot_wait_timeout: 600
+        instance_initiated_shutdown_behavior: terminate
+        key_name: "{{ aws_ssh_key }}"
+        group: valheim-sg
+        instance_type: "{{ instance_type }}"
+        image: "{{ ami_id }}"
+        wait: true
+        exact_count: 1
+        region: "{{ region }}"
+        zone: "{{ zone }}"
+        volumes:
+        - device_name: /dev/sda1
+          volume_type: gp2
+          volume_size: 128
+          delete_on_termination: true
+        count_tag:
+          managed_by: ansible
+          name: "{{ instance_tag }}"
+        instance_tags:
+          managed_by: ansible
+          name: "{{ instance_tag }}"
+      register: ec2
+
+    - name: Allocate elastic IP to instance
+      ec2_eip:
+        instance_id: "{{ ec2.instance_ids[item_idx] }}"
+        region: "{{ region }}"
+        reuse_existing_ip_allowed: yes
+        tag_name: valheim
+        state: present
+        in_vpc: yes
+      loop: "{{ ec2.instances }}"
+      loop_control:
+        index_var: item_idx
+      register: instance_eip
+    - debug: var=instance_eip.results
+
+    - name: Get instance information
+      ec2_instance_info:
+        instance_ids: "{{ ec2.instance_ids }}"
+        region: "{{ region }}"
+      register: ec2_info
+    - debug: var=ec2_info
+
+    - name: Write SSH config file
+      shell: |
+        echo "Host worker{{ item_idx }}" >> ssh_config
+        echo "   User ubuntu" >> ssh_config
+        echo "   Hostname {{ item.public_ip_address }} " >> ssh_config
+        echo "   IdentityFile {{ aws_key_location }} " >> ssh_config
+        echo >> ssh_config
+      loop: "{{ ec2_info.instances }}"
+      loop_control:
+        index_var: item_idx
+
+    - name: Add all instance public IPs to host group
+      add_host: hostname={{ item.public_dns_name }} groups=aws_ec2
+      loop: "{{ ec2_info.instances }}"
+      loop_control:
+        index_var: item_idx
+
+    - name: Wait for SSH to come up
+      delegate_to: "{{ item.public_dns_name }}"
+      wait_for_connection:
+        delay: 60
+        timeout: 320
+      loop: "{{ ec2_info.instances }}"
+      loop_control:
+        index_var: item_idx
+
+- import_playbook: environment-play.yaml
