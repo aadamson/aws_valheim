@@ -17,6 +17,3 @@ backups:
   minute: "0"
   hour: "0,12"
   weekday: "*"
-
-goofys:
-  bucket: valheim-adamson
