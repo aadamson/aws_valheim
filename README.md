@@ -3,6 +3,12 @@
 Ansible plays for deploying and managing a
 [Valheim](https://www.valheimgame.com/) server on Amazon Web Services.
 
+## Acknowledgements
+
+The server is powered by the [brilliant scripts](https://github.com/Nimdy/Dedicated_Valheim_Server_Script)
+developed by Nimdy/ZeroBandwidth. As an alternative to this guide, check out
+their guide (linked above) and use their DigitalOcean referral code.
+
 ## Getting Started
 
 ### Create a virtual environment
