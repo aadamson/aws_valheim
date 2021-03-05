@@ -1,0 +1,18 @@
+- name: Backup world
+  hosts: aws_ec2
+  remote_user: ubuntu
+
+  tasks:
+    - include_vars:
+        dir: config
+        extensions:
+          - 'yaml'
+        ignore_unknown_extensions: True
+
+    - name: Backup world files
+      become: yes
+      become_user: root
+      shell: |
+        lib/backup.sh --backup_path /mnt/goofys/{{ goofys.bucket }}/{{ server.world_name }}
+      args:
+        chdir: "{{ server_repo.dest }}"
