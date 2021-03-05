@@ -63,11 +63,11 @@
       include: environment/goofys.yaml
 
     - name: Restore initial world from local machine
-      include: initial-world-local.yaml
+      include: environment/initial-world-local.yaml
       when: server.initial_world_local_path != ''
 
     - name: Restore initial world from s3
-      include: initial-world-s3.yaml
+      include: environment/initial-world-s3.yaml
       when: server.initial_world_s3_path != ''
 
     - name: Create backups crontab
