@@ -1,4 +1,4 @@
-- name: Backup world
+- name: Restore world
   hosts: aws_ec2
   remote_user: ubuntu
 
@@ -9,6 +9,6 @@
           - 'yaml'
         ignore_unknown_extensions: True
 
-    - include: tasks/backup.yaml
+    - include: tasks/restore.yaml
       vars:
         backup_path: "{{ backup_path | default(/mnt/goofys/{{ goofys.bucket }}/{{ server.world_name }})"

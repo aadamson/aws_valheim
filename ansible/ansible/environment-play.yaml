@@ -36,6 +36,7 @@
           - git
           - net-tools
           - neovim
+          - postfix
           - rsync
           - stow
 
@@ -48,12 +49,25 @@
         version: "{{ server_repo.version }}"
         force: yes
 
+    - name: Find the scripts
+      find:
+        paths:
+          - "{{ server_repo.dest }}/lib"
+        patterns: "*.sh"
+      register: script_files
+
+    - name: Make the scripts runnable
+      become: yes
+      become_user: root
+      file:
+        path: "{{ item.path }}"
+        mode: u+x
+      with_items: "{{ script_files.files }}"
+
     - name: Install server
       become: yes
       become_user: root
       shell: |
-        chmod +x menu.sh
-        chmod +x lib/*.sh
         lib/install.sh -u "{{ server.user_password }}" -w "{{ server.world_name }}" -p "{{ server.password }}" -d "{{ server.display_name }}"
       args:
         chdir: "{{ server_repo.dest }}"
@@ -64,11 +78,25 @@
 
     - name: Restore initial world from local machine
       include: environment/initial-world-local.yaml
+      vars:
+        - initial_world_path: "{{ server.initial_world_local_path }}"
       when: server.initial_world_local_path != ''
 
     - name: Restore initial world from s3
       include: environment/initial-world-s3.yaml
+      vars:
+        - initial_world_path: "/mnt/goofys/{{ goofys.bucket }}/{{ server.initial_world_s3_path }}/"
       when: server.initial_world_s3_path != ''
+
+    - name: Set TERM for crontab
+      become: yes
+      become_user: root
+      cron:
+        env: yes
+        name: TERM
+        job: xterm-256color
+        user: root
+        state: present
 
     - name: Create backups crontab
       become: yes

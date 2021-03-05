@@ -2,7 +2,7 @@
   become: yes
   become_user: root
   shell: |
-    cp -r /mnt/goofys/{{ goofys.bucket }}/{{ server.initial_world_s3_path }}/ /home/steam/initial_world
+    cp -r {{ initial_world_path }} /home/steam/initial_world
     chown -R steam:steam /home/steam/initial_world/
     chmod 644 /home/steam/initial_world/*
   args:
@@ -12,8 +12,6 @@
   become: yes
   become_user: root
   shell: |
-    chmod +x menu.sh
-    chmod +x lib/*.sh
     lib/restore.sh --backup_path /home/steam/initial_world && echo "restored" >> /home/steam/initial_world.restored
   args:
     chdir: "{{ server_repo.dest }}"

@@ -2,7 +2,7 @@
   become: yes
   become_user: root
   copy:
-    src: "{{ server.initial_world_local_path }}/"
+    src: "{{ initial_world_path }}"
     dest: /home/steam/initial_world/
     owner: steam
     group: steam
@@ -12,8 +12,6 @@
   become: yes
   become_user: root
   shell: |
-    chmod +x menu.sh
-    chmod +x lib/*.sh
     lib/restore.sh --backup_path /home/steam/initial_world && echo "restored" >> /home/steam/initial_world.restored
   args:
     chdir: "{{ server_repo.dest }}"

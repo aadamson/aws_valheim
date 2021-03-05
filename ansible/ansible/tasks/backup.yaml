@@ -1,0 +1,7 @@
+- name: Backup world files
+  become: yes
+  become_user: root
+  shell: |
+    lib/backup.sh --backup_path "{{ backup_path }}"
+  args:
+    chdir: "{{ server_repo.dest }}"
