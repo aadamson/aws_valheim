@@ -1,0 +1,3 @@
+*.pem
+ansible/ansible/ssh_config
+ansible/ansible/config/secrets.yaml
