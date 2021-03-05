@@ -10,7 +10,7 @@
   become: yes
   become_user: root
   copy:
-    src: ../src/.aws/credentials
+    src: ../src/aws/credentials
     dest: /root/.aws/credentials
     mode: '0600'
 

@@ -41,6 +41,13 @@ echo "export AWS_SECRET_ACCESS_KEY=<your secret key>" >> ~/valheim_aws_rc
 source ~/valheim_aws_rc
 ```
 
+Create a copy of `ansible/src/aws/credentials.example` called `credentials`
+and fill in your access key ID and secret access key:
+```bash
+cp ansible/src/aws/credentials.example ansible/src/aws/credentials
+vim ansible/src/aws/credentials  # fill it in
+```
+
 ### Create a key pair and download it 
 
 Go to the [*Key Pairs*](https://us-east-2.console.aws.amazon.com/ec2/v2/home?region=us-east-2#KeyPairs:)
@@ -133,3 +140,26 @@ ansible-playbook setup-play.yaml
 That's it! If everything went well, you should now have a working server that
 you can connect to on port 2456 at the Elastic IP you created above. If not,
 please create an issue.
+
+## Managing the server
+
+### Connecting to it
+
+```bash
+ssh -F ansible/ansible/ssh_config worker0
+```
+
+### Tearing it down
+
+```bash
+ansible-playbook -i aws_ec2.yaml cleanup-play.yaml
+```
+
+### Manual backup
+
+Note that as with the automated backups, this will restart the Valheim
+server.
+
+```bash
+ansible-playbook -i aws_ec2.yaml backup-play.yaml
+```
