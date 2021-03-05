@@ -19,5 +19,4 @@ backups:
   weekday: "*"
 
 goofys:
-  user: steam
   bucket: valheim-adamson
